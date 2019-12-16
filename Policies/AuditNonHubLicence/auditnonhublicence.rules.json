@@ -1,0 +1,28 @@
+{
+    "if": {
+        "allOf": [
+            {
+                "field": "type",
+                "in": [
+                    "Microsoft.Compute/virtualMachines",
+                    "Microsoft.Compute/VirtualMachineScaleSets"
+                ]
+            },
+            {
+                "not": {
+                    "field": "Microsoft.Compute/licenseType",
+                    "equals": "Windows_Server"
+                }
+            },
+            {
+                "not": {
+                    "field": "Microsoft.Compute/licenseType",
+                    "equals": "Windows_Client"
+                }
+            }
+        ]
+    },
+    "then": {
+        "effect": "audit"
+    }
+}

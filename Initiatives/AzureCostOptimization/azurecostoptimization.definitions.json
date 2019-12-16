@@ -1,0 +1,14 @@
+[
+    {
+        "policyDefinitionId": "Audit Non Hub Licence"
+    },
+    {
+        "policyDefinitionId": "Audit Orphaned Disks"
+    },
+    {
+        "policyDefinitionId": "Audit Orphaned Network Interface Card"
+    },
+    {
+        "policyDefinitionId": "Audit Orphaned Public IP"
+    }
+]

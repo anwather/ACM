@@ -1,0 +1,17 @@
+{
+    "if": {
+        "allOf": [
+            {
+                "field": "type",
+                "equals": "Microsoft.Network/networkInterfaces"
+            },
+            {
+                "field": "Microsoft.Network/networkInterfaces/virtualMachine",
+                "exists": false
+            }
+        ]
+    },
+    "then": {
+        "effect": "audit"
+    }
+}
