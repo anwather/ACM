@@ -1,6 +1,9 @@
-$policies = Get-ChildItem -Path .\Policies -Directory
+Param(
+    [Parameter(Mandatory = $true)]    
+    [string]$ManagementGroupName
+)
 
-$managementGroupName = "awinternalmg"
+$policies = Get-ChildItem -Path .\Policies -Directory
 
 Write-Output "Discovered Policy Definitions"
 $policies | ForEach-Object {
