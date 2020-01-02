@@ -1,0 +1,28 @@
+{
+    "properties": {
+        "displayName": "Audit Orphaned Availability Set",
+        "policyType": "Custom",
+        "mode": "All",
+        "description": "This policy audits if an availability set has no virtual machines",
+        "parameters": {},
+        "policyRule": {
+            "if": {
+                "allOf": [
+                    {
+                        "field": "type",
+                        "equals": "Microsoft.Compute/availabilitySets"
+                    },
+                    {
+                        "count": {
+                            "field": "Microsoft.Compute/availabilitySets/virtualMachines[*]"
+                        },
+                        "equals": 0
+                    }
+                ]
+            },
+            "then": {
+                "effect": "audit"
+            }
+        }
+    }
+}
