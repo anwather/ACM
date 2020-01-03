@@ -10,5 +10,14 @@
     },
     {
         "policyDefinitionId": "Audit Orphaned Public IP"
+    },
+    {
+        "policyDefinitionId": "Audit Orphaned Availability Set"
+    },
+    {
+        "policyDefinitionId": "Audit Orphaned Load Balancer"
+    },
+    {
+        "policyDefinitionId": "Audit Orphaned Application Gateway"
     }
 ]

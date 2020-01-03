@@ -10,7 +10,13 @@ $policies | ForEach-Object {
     Write-Output $_.BaseName
 }
 
-$deploy = @("AuditNonHubLicence", "AuditOrphanedDisks", "AuditOrphanedNIC", "AuditOrphanedPublicIp")
+$deploy = @("AuditNonHubLicence", 
+    "AuditOrphanedDisks", 
+    "AuditOrphanedNIC", 
+    "AuditOrphanedPublicIp", 
+    "AuditOrphanedAvailabilitySet",
+    "AuditOrphanedLoadBalancer",
+    "AuditOrphanedApplicationGateway")
 
 Write-Output "Deploying Policies as per release variable"
 
