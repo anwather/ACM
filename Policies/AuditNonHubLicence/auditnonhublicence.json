@@ -26,6 +26,18 @@
                             "field": "Microsoft.Compute/licenseType",
                             "equals": "Windows_Client"
                         }
+                    },
+                    {
+                        "anyOf": [
+                            {
+                                "field": "Microsoft.Compute/virtualMachines/storageProfile.osDisk.osType",
+                                "equals": "Windows"
+                            },
+                            {
+                                "field": "Microsoft.Compute/virtualMachineScaleSets/virtualMachineProfile.storageProfile.imageReference.offer",
+                                "like": "WindowsServer*"
+                            }
+                        ]
                     }
                 ]
             },
