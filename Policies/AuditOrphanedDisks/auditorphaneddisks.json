@@ -14,7 +14,7 @@
                     },
                     {
                         "field": "Microsoft.Compute/disks/diskState",
-                        "notEquals": "Attached"
+                        "Equals": "Unattached"
                     }
                 ]
             },
