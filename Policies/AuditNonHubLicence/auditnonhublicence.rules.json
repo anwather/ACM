@@ -19,6 +19,10 @@
                     "field": "Microsoft.Compute/licenseType",
                     "equals": "Windows_Client"
                 }
+            },
+            {
+                "field": "Microsoft.Compute/imagePublisher",
+                "equals": "MicrosoftWindowsServer"
             }
         ]
     },
