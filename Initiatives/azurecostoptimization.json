@@ -1,0 +1,35 @@
+{
+    "properties": {
+        "name": "azurecostoptimization",
+        "displayName": "Azure Cost Optimization",
+        "policyType": "Custom",
+        "description": "Contains policies for Azure cost optimization delivery",
+        "metadata": {
+            "category": "Cost Management"
+        },
+        "parameters": {},
+        "policyDefinitions": [
+            {
+                "policyDefinitionId": "auditnonhublicence"
+            },
+            {
+                "policyDefinitionId": "auditorphaneddisks"
+            },
+            {
+                "policyDefinitionId": "auditorphanednic"
+            },
+            {
+                "policyDefinitionId": "auditorphanedpublicip"
+            },
+            {
+                "policyDefinitionId": "auditorphanedavailabilityset"
+            },
+            {
+                "policyDefinitionId": "auditorphanedloadbalancer"
+            },
+            {
+                "policyDefinitionId": "auditorphanedapplicationgateway"
+            }
+        ]
+    }
+}

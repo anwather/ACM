@@ -1,0 +1,30 @@
+{
+    "properties": {
+        "name": "auditorphanedapplicationgateway",
+        "displayName": "Audit Orphaned Application Gateway",
+        "policyType": "Custom",
+        "mode": "All",
+        "description": "This policy audits if an Application Gateway has no backend network interfaces attached",
+        "metadata": {
+            "category": "Cost Management"
+        },
+        "parameters": {},
+        "policyRule": {
+            "if": {
+                "allOf": [
+                    {
+                        "field": "type",
+                        "equals": "Microsoft.Network/applicationGateways"
+                    },
+                    {
+                        "field": "Microsoft.Network/applicationGateways/backendAddressPools[*].backendIPConfigurations[*].id",
+                        "exists": false
+                    }
+                ]
+            },
+            "then": {
+                "effect": "audit"
+            }
+        }
+    }
+}
