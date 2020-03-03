@@ -1,9 +1,13 @@
 {
     "properties": {
+        "name": "auditorphanedpublicip",
         "displayName": "Audit Orphaned Public IP",
         "policyType": "Custom",
         "mode": "All",
         "description": "This policy audits if a public ip address has no owner",
+        "metadata": {
+            "category": "Cost Management"
+        },
         "parameters": {},
         "policyRule": {
             "if": {

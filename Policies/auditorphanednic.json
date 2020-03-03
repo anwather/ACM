@@ -1,19 +1,23 @@
 {
     "properties": {
-        "displayName": "Audit Orphaned Application Gateway",
+        "name": "auditorphanednic",
+        "displayName": "Audit Orphaned Network Interface Card",
         "policyType": "Custom",
         "mode": "All",
-        "description": "This policy audits if an Application Gateway has no backend network interfaces attached",
+        "description": "This policy audits if a network interface address has no owner",
+        "metadata": {
+            "category": "Cost Management"
+        },
         "parameters": {},
         "policyRule": {
             "if": {
                 "allOf": [
                     {
                         "field": "type",
-                        "equals": "Microsoft.Network/applicationGateways"
+                        "equals": "Microsoft.Network/networkInterfaces"
                     },
                     {
-                        "field": "Microsoft.Network/applicationGateways/backendAddressPools[*].backendIPConfigurations[*].id",
+                        "field": "Microsoft.Network/networkInterfaces/virtualMachine",
                         "exists": false
                     }
                 ]

@@ -1,9 +1,13 @@
 {
     "properties": {
+        "name": "auditnonhublicence",
         "displayName": "Audit Non Hub Licence",
         "policyType": "Custom",
         "mode": "All",
         "description": "This policy audit if a virtual machine is using Azure Hybrid Use Benefit",
+        "metadata": {
+            "category": "Cost Management"
+        },
         "parameters": {},
         "policyRule": {
             "if": {
