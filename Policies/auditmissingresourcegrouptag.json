@@ -1,0 +1,34 @@
+{
+    "properties": {
+        "name": "auditmissingresourcegrouptag",
+        "displayName": "Audit Missing Resource Group Tag",
+        "policyType": "Custom",
+        "mode": "All",
+        "description": "This policy audits if a resource group is missing a tag - e.g. Cost Centre",
+        "metadata": {
+            "category": "Cost Management"
+        },
+        "parameters": {
+            "tagName": {
+                "type": "string"
+            }
+        },
+        "policyRule": {
+            "if": {
+                "allOf": [
+                    {
+                        "field": "type",
+                        "equals": "Microsoft.Resources/subscriptions/resourceGroups"
+                    },
+                    {
+                        "field": "[concat('tags[', parameters('tagName'), ']')]",
+                        "exists": "false"
+                    }
+                ]
+            },
+            "then": {
+                "effect": "audit"
+            }
+        }
+    }
+}
