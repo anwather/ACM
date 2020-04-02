@@ -1,6 +1,31 @@
+<#
+.SYNOPSIS
+    Determine storage account size changes
+.DESCRIPTION
+    Determines the amount of data change in percentage for storage account in a subscription
+.EXAMPLE
+    PS C:\> StorageCapacityChange.ps1
+    
+    Provides percentage change over the last 30 days in MB
+.EXAMPLE
+    PS C:\> StorageCapacityChange.ps1 -Days 10 -Unit GB
+    
+    Provides percentage change over the last 10 days in GB
+#>
+
 #Requires -Version 7.0.0
-Param([ValidateRange(1, 30)]
-    [int]$Days = 30)
+Param(
+    [ValidateRange(1, 30)]
+    [int]$Days = 30,
+    [ValidateSet("KB", "MB", "GB")]
+    [string]$Unit = "MB"
+)
+
+switch ($Unit) {
+    "KB" { [int]$Unitx = 1KB }
+    "MB" { [int]$Unitx = 1MB }
+    "GB" { [int]$Unitx = 1GB }
+}
 
 $storageAccountIDs = (Get-AzStorageAccount).Id
 
@@ -41,14 +66,13 @@ $resultArray = $storageAccountIDs | ForEach-Object -Parallel {
     
     } while ($exit -eq $false)
 
-    $percentChange = "{0:p5}" -f [double](($endVal.Average - $startVal.Average) / $startVal.Average)
-
+    $percentChange = "{0:p2}" -f [double](($endVal.Average - $startVal.Average) / $startVal.Average)
     $outputObj = [PSCustomObject]@{
         StorageAccountName = $_.Split("/")[-1]
         StartTime          = $startVal.StartTime
         EndTime            = $endVal.EndTime
-        StartValue         = "$([math]::Round(($startVal.Average)/1KB))KB"
-        EndValue           = "$([math]::Round(($endVal.Average)/1KB))KB"
+        StartValue         = "$([math]::Round(($startVal.Average)/$using:Unitx))$using:Unit"
+        EndValue           = "$([math]::Round(($endVal.Average)/$using:Unitx))$using:Unit"
         PercentageChange   = $percentChange
         
     }
