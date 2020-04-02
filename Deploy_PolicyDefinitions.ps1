@@ -1,46 +1,31 @@
 Param(
-    [Parameter(Mandatory = $true)]    
-    [string]$ManagementGroupName
+    [Parameter(Mandatory = $true, ParameterSetName = "mg")]
+    [string]$ManagementGroupName,
+    [Parameter(Mandatory = $true, ParameterSetName = "sub")]
+    [string]$SubscriptionId
 )
 
-$policies = Get-ChildItem -Path .\Policies -Directory
+$policies = Get-ChildItem -Path .\Policies -Recurse -File
 
-Write-Output "Discovered Policy Definitions"
-$policies | ForEach-Object {
-    Write-Output $_.BaseName
-}
+foreach ($policy in $policies) {
 
-$deploy = @("AuditNonHubLicence", 
-    "AuditOrphanedDisks", 
-    "AuditOrphanedNIC", 
-    "AuditOrphanedPublicIp", 
-    "AuditOrphanedAvailabilitySet",
-    "AuditOrphanedLoadBalancer",
-    "AuditOrphanedApplicationGateway")
-
-Write-Output "Deploying Policies as per release variable"
-
-$deploy | ForEach-Object {
-    Write-Output $_
-}
-
-Push-Location
-
-Copy-Item .\Initiatives\AzureCostOptimization\azurecostoptimization.json .\inittemp.json -Force
-Copy-Item .\Initiatives\AzureCostOptimization\azurecostoptimization.definitions.json .\inittempdefs.json -Force
-
-foreach ($policyFolder in $policies) {
-    Push-Location
-    if ($policyFolder.Name -in $deploy) {
-        Write-Output "Deploy policy $($policyFolder.Name)"
+    if ($policy.BaseName) {
+        Write-Output "Deploying policy $($policy.BaseName)"
         $policyParameters = $null
         $params = $null
-        Set-Location $policyFolder.FullName
 
-        $policyRules = Get-ChildItem | Where-Object Name -match "rules" | Get-Content -Raw
-        $policyParameters = Get-ChildItem | Where-Object Name -match "parameters" | Get-Content -Raw
+        $policyObj = Get-Content $policy | ConvertFrom-Json | Select-Object -ExpandProperty properties
 
-        if (!($null -eq $policyParameters)) {
+        (Get-Content $policy | ConvertFrom-Json | Select-Object -ExpandProperty properties).policyRule `
+        | ConvertTo-Json -Depth 100 | Out-File tmp_$($policyObj.Name).json
+
+        $policyRules = Get-Content tmp_$($policyObj.Name).json -Raw && Remove-Item tmp_$($policyObj.Name).json -Force
+
+        (Get-Content $policy | ConvertFrom-Json | Select-Object -ExpandProperty properties).parameters `
+        | ConvertTo-Json -Depth 100 | Out-File tmp_$($policyObj.Name).json
+
+        if ((Get-Content tmp_$($policyObj.Name).json | Measure-Object -Line).Lines -gt 1 ) {
+            $policyParameters = Get-Content tmp_$($policyObj.Name).json -Raw
             $params = @{
                 Verbose   = $true
                 Parameter = $policyParameters
@@ -52,36 +37,92 @@ foreach ($policyFolder in $policies) {
             }
         }
 
-        Write-Output $policyRules
-        Write-Output $policyParameters
+        switch ($PSBoundParameters) {
+            { $_.ContainsKey("ManagementGroupName") } { $params.Add("ManagementGroupName", $ManagementGroupName) }
+            { $_.ContainsKey("SubscriptionId") } { $params.Add("SubscriptionId", $SubscriptionId) }
+        }
 
-        $policyDefinition = Get-ChildItem | Where-Object Name -notmatch "parameters|rules" | Get-Content | ConvertFrom-Json
+        Remove-Item tmp_$($policyObj.Name).json -Force
 
-        $pol = New-AzPolicyDefinition -Name ($policyDefinition.properties.displayName).Replace(" ", "-") `
-            -DisplayName $policyDefinition.properties.displayName `
-            -Description $policyDefinition.properties.description `
+        New-AzPolicyDefinition -Name $policyObj.name `
+            -DisplayName $policyObj.displayName `
+            -Description $policyObj.description `
             -Policy $policyRules `
-            -Mode $policyDefinition.properties.mode `
-            -ManagementGroupName $managementGroupName  `
+            -Mode $policyObj.mode `
+            -Metadata ($policyObj.metadata | ConvertTo-Json) `
             @params
 
-        (Get-Content ..\..\inittempdefs.json) -replace $policyDefinition.properties.displayName, $pol.PolicyDefinitionId | Set-Content -Path ..\..\inittempdefs.json
-        
-        
-
+        $params = $null
     }
-    Pop-Location
+    
+}
+$params = @{ }
+switch ($PSBoundParameters) {
+    { $_.ContainsKey("ManagementGroupName") } { $params.Add("ManagementGroupName", $ManagementGroupName) }
+    { $_.ContainsKey("SubscriptionId") } { $params.Add("SubscriptionId", $SubscriptionId) }
 }
 
-$iDef = Get-Content .\inittemp.json | ConvertFrom-Json
-$policyDefinitions = Get-ChildItem | Where-Object Name -match "defs" | Get-Content -Raw
-
-New-AzPolicySetDefinition -ManagementGroupName $managementGroupName -Name $idef.name `
-    -DisplayName $idef.properties.displayName `
-    -Description $idef.properties.description `
-    -PolicyDefinition $policyDefinitions `
-    -Verbose
-
-if (Test-Path .\Policies) {
-    Remove-Item *.json -Force
+$policyMap = @{ }
+Get-AzPolicyDefinition @params | Select-Object Name, PolicyDefinitionId | ForEach-Object {
+    if (!($policyMap.ContainsKey($_.Name))) {
+        $policyMap.Add($_.Name, $_.PolicyDefinitionId)
+    }
 }
+
+$initiatives = Get-ChildItem -Path .\Initiatives -Recurse -File
+
+foreach ($initiative in $initiatives) {
+    Write-Output "Deploy initiative $($initiative.Name)"
+    $initiativeParameters = $null
+    $params = $null
+
+    $initiativeObj = Get-Content $initiative | ConvertFrom-Json | Select-Object -ExpandProperty properties
+
+    $obj = (Get-Content $initiative | ConvertFrom-Json | Select-Object -ExpandProperty properties).policyDefinitions
+    $obj | ForEach-Object { $_.policyDefinitionId = $policyMap[$_.policyDefinitionId] }
+    if ($obj.Count -eq 1) {
+        $obj | ConvertTo-Json -Depth 100 -AsArray | Out-File tmp_$($initiativeObj.Name).json
+    }
+    else {
+        $obj | ConvertTo-Json -Depth 100 | Out-File tmp_$($initiativeObj.Name).json
+    }
+    
+
+    $initiativeDefinition = Get-Content tmp_$($initiativeObj.Name).json -Raw && Remove-Item tmp_$($initiativeObj.Name).json -Force
+
+    (Get-Content $initiative | ConvertFrom-Json | Select-Object -ExpandProperty properties).parameters `
+    | ConvertTo-Json -Depth 100 | Out-File tmp_$($initiativeObj.Name).json
+
+    if ((Get-Content tmp_$($initiativeObj.Name).json | Measure-Object -Line).Lines -gt 1 ) {
+        $initiativeParameters = Get-Content tmp_$($initiativeObj.Name).json -Raw
+        $params = @{
+            Verbose   = $true
+            Parameter = $initiativeParameters
+        }
+    }
+    else {
+        $params = @{
+            Verbose = $true
+        }
+    }
+
+    switch ($PSBoundParameters) {
+        { $_.ContainsKey("ManagementGroupName") } { $params.Add("ManagementGroupName", $ManagementGroupName) }
+        { $_.ContainsKey("SubscriptionId") } { $params.Add("SubscriptionId", $SubscriptionId) }
+    }
+
+    Remove-Item tmp_$($initiativeObj.Name).json -Force
+
+    New-AzPolicySetDefinition -Name $initiativeObj.name `
+        -DisplayName $initiativeObj.displayName `
+        -Description $initiativeObj.description `
+        -PolicyDefinition $initiativeDefinition `
+        -Metadata ($initiativeObj.metadata | ConvertTo-Json) `
+        @params
+
+    $params = $null
+
+}
+
+
+

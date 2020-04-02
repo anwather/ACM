@@ -1,9 +1,13 @@
 {
     "properties": {
+        "name": "auditorphanedavailabilityset",
         "displayName": "Audit Orphaned Availability Set",
         "policyType": "Custom",
         "mode": "All",
         "description": "This policy audits if an availability set has no virtual machines",
+        "metadata": {
+            "category": "Cost Management"
+        },
         "parameters": {},
         "policyRule": {
             "if": {
