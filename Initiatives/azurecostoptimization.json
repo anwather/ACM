@@ -7,7 +7,12 @@
         "metadata": {
             "category": "Cost Management"
         },
-        "parameters": {},
+        "parameters": {
+            "tagName": {
+                "type": "string",
+                "defaultValue": "CostCentre"
+            }
+        },
         "policyDefinitions": [
             {
                 "policyDefinitionId": "auditnonhublicence"
@@ -29,6 +34,14 @@
             },
             {
                 "policyDefinitionId": "auditorphanedapplicationgateway"
+            },
+            {
+                "parameters": {
+                    "tagName": {
+                        "value": "[parameters('tagName')]"
+                    }
+                },
+                "policyDefinitionId": "auditmissingresourcegrouptag"
             }
         ]
     }

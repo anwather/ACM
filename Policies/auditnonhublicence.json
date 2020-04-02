@@ -1,13 +1,9 @@
 {
     "properties": {
-        "name": "auditnonhublicence",
         "displayName": "Audit Non Hub Licence",
         "policyType": "Custom",
         "mode": "All",
         "description": "This policy audit if a virtual machine is using Azure Hybrid Use Benefit",
-        "metadata": {
-            "category": "Cost Management"
-        },
         "parameters": {},
         "policyRule": {
             "if": {
@@ -32,8 +28,16 @@
                         }
                     },
                     {
-                        "field": "Microsoft.Compute/imagePublisher",
-                        "equals": "MicrosoftWindowsServer"
+                        "anyOf": [
+                            {
+                                "field": "Microsoft.Compute/virtualMachines/storageProfile.osDisk.osType",
+                                "equals": "Windows"
+                            },
+                            {
+                                "field": "Microsoft.Compute/virtualMachineScaleSets/virtualMachineProfile.storageProfile.imageReference.offer",
+                                "like": "WindowsServer*"
+                            }
+                        ]
                     }
                 ]
             },
